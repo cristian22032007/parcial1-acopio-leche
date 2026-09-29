@@ -10,7 +10,6 @@ defmodule Validacion do
   @grasa_min 0
   @grasa_max 15
 
-
   def validar_entrega(entrega, productores, tanques) do
     with :ok <- validar_productor(entrega, productores),
          :ok <- validar_tanque(entrega, tanques),
@@ -22,16 +21,31 @@ defmodule Validacion do
   end
 
   defp validar_productor(entrega, productores) do
-    # ¿algún productor tiene codigo == entrega.productor?
-    # Pista: Enum.any?/2
+    if Enum.any?(productores, &(&1.codigo == entrega.productor)) do
+      :ok
+    else
+      {:error, :productor_desconocido}
+    end
   end
 
   defp validar_tanque(entrega, tanques) do
-    # igual, pero con id
+    if Enum.any?(tanques, &(&1.id == entrega.tanque)) do
+      :ok
+    else
+      {:error, :tanque_desconocido}
+    end
   end
 
   defp validar_dia(entrega) do
-    # Pista: is_integer/1 y comparación de rango
+    if is_integer(entrega.dia) do
+      if entrega.dia >= @dia_min and entrega.dia <= @dia_max do
+        :ok
+      else
+        {:error, :dia_invalido}
+      end
+    else
+      {:error, :dia_invalido}
+    end
   end
 
   defp validar_litros(entrega) do
