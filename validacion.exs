@@ -49,14 +49,14 @@ defmodule Validacion do
   end
 
   defp validar_litros(entrega) do
-    if is number(entrega.litros) do
+    if is_number(entrega.litros) do
       if entrega.litros > 0 and entrega.litros <= @litros_max do
         :ok
       else
-        {:error, :litros_invalidos}
+       {:error, :litros_fuera_de_rango}
       end
     else
-      {:error, :litros_invalidos}
+     {:error, :litros_fuera_de_rango}
     end
   end
 
@@ -65,10 +65,10 @@ defmodule Validacion do
       if entrega.grasa >= @grasa_min and entrega.grasa <= @grasa_max do
         :ok
       else
-        {:error, :grasa_invalida}
+        {:error, :porcentaje_invalido}
       end
     else
-      {:error, :grasa_invalida}
+      {:error, :porcentaje_invalido}
     end
   end
-end
+ end
