@@ -13,7 +13,7 @@ lista_productores = Datos.productores()
 lista_tanques = Datos.tanques()
 lista_entregas = Datos.entregas()
 
-IO.puts("==========================================")
+
 IO.puts("    REGISTRO DE ENTREGA ADICIONAL        ")
 IO.puts("==========================================")
 linea_adicional = IO.gets("Ingrese una entrega adicional (productor;tanque;dia;litros;grasa) o Enter para omitir: ")
@@ -42,49 +42,49 @@ entregas_validas = for {e, {:ok, _}} <- resultados, do: e
 rechazadas = for {e, {:error, motivo}} <- resultados, do: {e, motivo}
 liquidaciones = Liquidacion.liquidar_todos(entregas_validas, lista_productores)
 
-IO.puts("\n==========================================")
+
 IO.puts("          REPORTE R1: RECHAZADAS          ")
 IO.puts("==========================================")
 IO.inspect(Reportes.reporte_r1(rechazadas))
 
-IO.puts("\n==========================================")
+
 IO.puts("          REPORTE R2: TANQUES             ")
 IO.puts("==========================================")
 IO.inspect(Reportes.reporte_r2(lista_tanques, entregas_validas))
 
-IO.puts("\n==========================================")
+
 IO.puts("          REPORTE R3: METAS DIARIAS       ")
 IO.puts("==========================================")
 res_r3 = Reportes.reporte_r3(entregas_validas)
 IO.inspect(res_r3)
 
-IO.puts("\n==========================================")
+
 IO.puts("          REPORTE R4: LIQUIDACION         ")
 IO.puts("==========================================")
 liquidaciones_r4 = Reportes.reporte_r4(liquidaciones)
 IO.inspect(liquidaciones_r4)
 
-IO.puts("\n==========================================")
+
 IO.puts("          REPORTE R5: LIDERES DIARIOS     ")
 IO.puts("==========================================")
 IO.inspect(Reportes.reporte_r5(lista_productores, entregas_validas))
 
-IO.puts("\n==========================================")
+
 IO.puts("          REPORTE R6: MEJOR CALIDAD       ")
 IO.puts("==========================================")
 IO.inspect(Reportes.reporte_r6(lista_productores, entregas_validas))
 
-IO.puts("\n==========================================")
+
 IO.puts("          REPORTE R7: TOTAL PAGADO        ")
 IO.puts("==========================================")
 IO.inspect(Reportes.reporte_r7(liquidaciones))
 
-IO.puts("\n==========================================")
+
 IO.puts("          REPORTE R8: TODOS LOS TANQUES   ")
 IO.puts("==========================================")
 IO.inspect(Reportes.reporte_r8(lista_productores, lista_tanques, entregas_validas))
 
-IO.puts("\n==========================================")
+
 IO.puts("     INVESTIGACION: Map.merge/3          ")
 IO.puts("==========================================")
 litros_actuales =
@@ -98,14 +98,14 @@ mapa_combinado = Auxiliares.combinar_centros(litros_actuales, centro_vecino)
 IO.puts("Mapa de litros combinados con centro vecino:")
 IO.inspect(mapa_combinado)
 
-IO.puts("\n==========================================")
+
 IO.puts("   RANKING CON KEYWORD LISTS   ")
 IO.puts("==========================================")
 top3_ranking = Auxiliares.ranking(liquidaciones_r4, 3)
 IO.puts("Top 3 productores (formato Keyword List [{:productor, neto}]):")
 IO.inspect(top3_ranking)
 
-IO.puts("\n==========================================")
+
 IO.puts("   MEDICION CON :timer.tc/1      ")
 IO.puts("==========================================")
 {tiempo_us, _resultado} =
@@ -113,7 +113,7 @@ IO.puts("==========================================")
 
 IO.puts("Tiempo de ejecucion de la liquidacion de todos los productores: #{tiempo_us} microsegundos (#{tiempo_us / 1000} ms)")
 
-IO.puts("\n==========================================")
+
 IO.puts("      SOLICITUD DE COMPROBANTE            ")
 IO.puts("==========================================")
 codigo_ingresado =

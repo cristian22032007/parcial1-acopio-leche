@@ -13,9 +13,7 @@ defmodule Auxiliares do
   bonificaciones y el transporte se calculan solo en `Liquidacion`.
   """
 
-  # ---------------------------------------------------------------
   # Entrada adicional (pura: recibe texto y devuelve datos)
-  # ---------------------------------------------------------------
 
   @doc """
   Convierte el texto de una entrega adicional en un mapa.
@@ -53,9 +51,7 @@ defmodule Auxiliares do
     end
   end
 
-  # ---------------------------------------------------------------
   # Comprobante (impura: imprime en pantalla)
-  # ---------------------------------------------------------------
 
   @doc """
   Imprime el comprobante semanal de un productor según su código.
@@ -73,7 +69,6 @@ defmodule Auxiliares do
         liquidacion = Liquidacion.liquidar_productor(entregas_validas, productor)
         detalle = Liquidacion.detalle_por_dia(entregas_productor)
 
-        IO.puts("\n==========================================")
         IO.puts("        COMPROBANTE DE LIQUIDACION        ")
         IO.puts("==========================================")
         IO.puts("Productor: #{productor.nombre} (#{productor.codigo})")
@@ -100,9 +95,7 @@ defmodule Auxiliares do
     end
   end
 
-  # ---------------------------------------------------------------
   # Investigación (puras)
-  # ---------------------------------------------------------------
 
   @doc """
   Combina los litros diarios de este centro con los de un centro vecino.
@@ -126,9 +119,7 @@ defmodule Auxiliares do
     |> Enum.take(top_n)
   end
 
-  # ---------------------------------------------------------------
   # Privadas
-  # ---------------------------------------------------------------
 
   # Redondea a 2 decimales para que el comprobante sea legible.
   defp redondear(numero), do: Float.round(numero / 1, 2)
