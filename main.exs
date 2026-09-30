@@ -40,13 +40,14 @@ todas_las_entregas =
       lista_entregas
   end
 
-entregas_validas =
-  Enum.filter(todas_las_entregas, fn entrega ->
-    case Validacion.validar_entrega(entrega, lista_productores, lista_tanques) do
-      {:ok, _} -> true
-      {:error, _} -> false
-    end
+resultados =
+  Enum.map(todas_las_entregas, fn e ->
+    {e, Validacion.validar_entrega(e, lista_productores, lista_tanques)}
   end)
+
+entregas_validas = for {e, {:ok, _}} <- resultados, do: e
+rechazadas = for {e, {:error, motivo}} <- resultados, do: {e, motivo}
+liquidaciones = Liquidacion.liquidar_todos(entregas_validas, lista_productores)
 
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R1: RECHAZADAS          ")

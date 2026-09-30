@@ -68,7 +68,7 @@ defmodule Auxiliares do
       liq = Liquidacion.liquidar_productor(entregas_validas, productor)
       entregas_prod = Enum.filter(entregas_validas, &(&1.productor == productor.codigo))
 
-      IO.puts("\n==========================================")
+
       IO.puts("        COMPROBANTE DE LIQUIDACION        ")
       IO.puts("==========================================")
       IO.puts("Productor: #{productor.nombre} (#{productor.codigo})")
