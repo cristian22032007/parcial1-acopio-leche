@@ -5,19 +5,8 @@
 
 Code.require_file("datos.exs")
 Code.require_file("validacion.exs")
+Code.require_file("liquidacion.exs")
 
- entrega = %{
-   productor: "P01",
-   tanque: "T1",
-   día: 1,
-   litros: 240,
-   grasa: 3.8
- }
-
-  IO.inspect(
-    Validacion.validar_entrega(
-      entrega,
-      Datos.productores(),
-      Datos.tanques()
-    )
-  )
+lista_productores = Datos.productores()
+lista_tanques = Datos.tanques()
+lista_entregas = Datos.entregas()
