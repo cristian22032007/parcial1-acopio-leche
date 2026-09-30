@@ -4,12 +4,23 @@
 #       QUINTERO GIL JUAN CAMILO
 
 defmodule Validacion do
+
   @dia_min 1
   @dia_max 6
   @litros_max 800
   @grasa_min 0
   @grasa_max 15
 
+  @doc """
+  Valida una entrega aplicando las cinco reglas en orden, encadenadas con `with`.
+
+  Recibe la entrega, la lista de productores y la lista de tanques.
+  Se detiene en la primera regla que falle.
+
+  Devuelve {:ok, entrega} si cumple todas las reglas, o {:error, motivo}
+  con uno de estos motivos: :productor_desconocido, :tanque_desconocido,
+  :dia_invalido, :litros_fuera_de_rango o :porcentaje_invalido.
+  """
   def validar_entrega(entrega, productores, tanques) do
     with :ok <- validar_productor(entrega, productores),
          :ok <- validar_tanque(entrega, tanques),
