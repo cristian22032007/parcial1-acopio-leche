@@ -103,4 +103,15 @@ defmodule Auxiliares do
   def combinar_centros(litros_centro_actual, centro_vecino) do
     Map.merge(litros_centro_actual, centro_vecino, fn _dia, v1, v2 -> v1 + v2 end)
   end
+
+  @doc """
+Genera un ranking de los N productores con mayor pago neto usando Keyword Lists.
+Las Keyword Lists son listas de tuplas de 2 elementos [{:átomo, valor}].
+"""
+def ranking(productores_liquidados, top_n) do
+  productores_liquidados
+  |> Enum.map(fn p -> {String.to_atom(p.codigo), p.neto} end)
+  |> Enum.sort_by(fn {_cod, neto} -> neto end, :desc)
+  |> Enum.take(top_n)
+end
 end
