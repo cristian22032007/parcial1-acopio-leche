@@ -42,4 +42,36 @@ defmodule Reportes do
     end)
     |> Enum.sort_by(& &1.porcentaje, :desc)
   end
+
+  # R3: Litros recibidos por el centro en cada uno de los 6 días y cumplimiento de meta
+  def reporte_r3(entregas_validas) do
+    dias = 1..6
+
+    litros_por_dia =
+      Enum.map(dias, fn dia ->
+        entregas_dia = Enum.filter(entregas_validas, &(&1.dia == dia))
+        litros = Enum.sum(Enum.map(entregas_dia, & &1.litros))
+        cumplio = litros >= 2000
+        {dia, litros, cumplio}
+      end)
+
+    cumplio_todos = Enum.all?(litros_por_dia, fn {_d, _l, cumplio} -> cumplio end)
+    cumplio_al_menos_uno = Enum.any?(litros_por_dia, fn {_d, _l, cumplio} -> cumplio end)
+
+    %{
+      detalle_dias: litros_por_dia,
+      cumplio_todos: cumplio_todos,
+      cumplio_al_menos_uno: cumplio_al_menos_uno
+    }
+  end
+
+  # R4: Liquidación de todos los productores ordenada por pago neto de mayor a menor
+  def reporte_r4(productores, entregas_validas) do
+    liquidaciones = Liquidacion.liquidar_todos(entregas_validas, productores)
+
+    liquidaciones
+    |> Enum.sort_by(& &1.neto, :desc)
+    |> Enum.with_index(1)
+    |> Enum.map(fn {liq, posicion} -> Map.put(liq, :posicion, posicion) end)
+  end
 end
