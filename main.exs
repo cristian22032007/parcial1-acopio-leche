@@ -25,15 +25,8 @@ todas_las_entregas =
       lista_entregas
 
     {:ok, entrega_nueva} ->
-      case Validacion.validar_entrega(entrega_nueva, lista_productores, lista_tanques) do
-        {:ok, _} ->
-          IO.puts("[+] Entrega adicional valida incorporada al sistema.")
-          lista_entregas ++ [entrega_nueva]
-
-        {:error, motivo} ->
-          IO.puts("[!] Entrega adicional rechazada por regla de negocio: #{motivo}")
-          lista_entregas ++ [entrega_nueva]
-      end
+      IO.puts("[i] Entrega adicional recibida. Se validara junto con las demas.")
+      lista_entregas ++ [entrega_nueva]
 
     {:error, :formato_invalido} ->
       IO.puts("[!] Error: formato invalido en la entrega adicional. Se omitira.")
@@ -52,7 +45,7 @@ liquidaciones = Liquidacion.liquidar_todos(entregas_validas, lista_productores)
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R1: RECHAZADAS          ")
 IO.puts("==========================================")
-IO.inspect(Reportes.reporte_r1(todas_las_entregas, lista_productores, lista_tanques))
+IO.inspect(Reportes.reporte_r1(rechazadas))
 
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R2: TANQUES             ")
@@ -68,7 +61,7 @@ IO.inspect(res_r3)
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R4: LIQUIDACION         ")
 IO.puts("==========================================")
-liquidaciones_r4 = Reportes.reporte_r4(lista_productores, entregas_validas)
+liquidaciones_r4 = Reportes.reporte_r4(liquidaciones)
 IO.inspect(liquidaciones_r4)
 
 IO.puts("\n==========================================")
@@ -84,7 +77,7 @@ IO.inspect(Reportes.reporte_r6(lista_productores, entregas_validas))
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R7: TOTAL PAGADO        ")
 IO.puts("==========================================")
-IO.inspect(Reportes.reporte_r7(lista_productores, entregas_validas))
+IO.inspect(Reportes.reporte_r7(liquidaciones))
 
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R8: TODOS LOS TANQUES   ")
@@ -115,14 +108,16 @@ IO.inspect(top3_ranking)
 IO.puts("\n==========================================")
 IO.puts("   MEDICION CON :timer.tc/1      ")
 IO.puts("==========================================")
-{tiempo_us, _resultado} = :timer.tc(fn -> Reportes.reporte_r4(lista_productores, entregas_validas) end)
-IO.puts("Tiempo de ejecucion del Reporte R4 (Liquidacion): #{tiempo_us} microsegundos (#{tiempo_us / 1000} ms)")
+{tiempo_us, _resultado} =
+  :timer.tc(fn -> Liquidacion.liquidar_todos(entregas_validas, lista_productores) end)
+
+IO.puts("Tiempo de ejecucion de la liquidacion de todos los productores: #{tiempo_us} microsegundos (#{tiempo_us / 1000} ms)")
 
 IO.puts("\n==========================================")
 IO.puts("      SOLICITUD DE COMPROBANTE            ")
 IO.puts("==========================================")
 codigo_ingresado =
-  IO.gets("Ingrese el codigo del productor para ver comprobante (ej: P01): ")
+  (IO.gets("Ingrese el codigo del productor para ver comprobante (ej: P01): ") || "")
   |> String.trim()
 
 Auxiliares.imprimir_comprobante(codigo_ingresado, lista_productores, entregas_validas)

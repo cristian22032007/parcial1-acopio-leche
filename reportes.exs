@@ -4,7 +4,6 @@
 #       QUINTERO GIL JUAN CAMILO
 
 defmodule Reportes do
-  Code.require_file("liquidacion.exs")
 
   @meta_diaria 2000
 
@@ -19,30 +18,16 @@ defmodule Reportes do
   @doc """
   R1: Entregas rechazadas con su motivo y cantidad de rechazos por cada motivo.
   """
-  def reporte_r1(entregas, productores, tanques) do
-  rechazadas_con_motivo =
-    Enum.flat_map(entregas, fn entrega ->
-      case Validacion.validar_entrega(entrega, productores, tanques) do
-        {:error, motivo} -> [{entrega, motivo}]
-        {:ok, _} -> []
-      end
-    end)
+  def reporte_r1(rechazadas) do
+    conteo_inicial = Map.new(@motivos_rechazo, fn motivo -> {motivo, 0} end)
 
-  conteo_motivos =
-    Enum.reduce(@motivos_rechazo, %{}, fn motivo, acc ->
-      Map.put(acc, motivo, 0)
-    end)
+    conteo =
+      Enum.reduce(rechazadas, conteo_inicial, fn {_entrega, motivo}, acc ->
+        Map.update!(acc, motivo, &(&1 + 1))
+      end)
 
-  conteo_motivos =
-    Enum.reduce(rechazadas_con_motivo, conteo_motivos, fn {_entrega, motivo}, acc ->
-      Map.update!(acc, motivo, &(&1 + 1))
-    end)
-
-  %{
-    entregas_rechazadas: rechazadas_con_motivo,
-    conteo: conteo_motivos
-  }
-end
+    %{entregas_rechazadas: rechazadas, conteo: conteo}
+  end
 
   @doc """
   R2: Litros almacenados por tanque y porcentaje de ocupación respecto de su capacidad.
@@ -92,9 +77,7 @@ end
   @doc """
   R4: Liquidación de todos los productores ordenada por pago neto de mayor a menor.
   """
-  def reporte_r4(productores, entregas_validas) do
-    liquidaciones = Liquidacion.liquidar_todos(entregas_validas, productores)
-
+  def reporte_r4(liquidaciones) do
     liquidaciones
     |> Enum.sort_by(& &1.neto, :desc)
     |> Enum.with_index(1)
@@ -194,10 +177,9 @@ end
   @doc """
   R7: Total pagado por el centro durante la semana y costo promedio pagado por litro.
   """
-  def reporte_r7(productores, entregas_validas) do
-    liquidaciones = Liquidacion.liquidar_todos(entregas_validas, productores)
+  def reporte_r7(liquidaciones) do
     total_pagado = Enum.sum(Enum.map(liquidaciones, & &1.neto))
-    total_litros = Enum.sum(Enum.map(entregas_validas, & &1.litros))
+    total_litros = Enum.sum(Enum.map(liquidaciones, & &1.litros))
 
     costo_promedio = if total_litros > 0, do: total_pagado / total_litros, else: 0.0
 

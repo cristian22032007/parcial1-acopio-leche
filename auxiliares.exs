@@ -4,34 +4,45 @@
 #       QUINTERO GIL JUAN CAMILO
 
 defmodule Auxiliares do
-  @tarifa_base 1800
-  @grasa_bonificacion 3.5
-  @grasa_sin_ajuste 3.0
-  @grasa_descuento_medio 2.5
-  @factor_bonificacion_grasa 1.06
-  @factor_descuento_medio 0.92
-  @factor_descuento_alto 0.8
-  @litros_bonificacion 450
-  @bonificacion_diaria 25000
+  @moduledoc """
+  Funciones de apoyo del programa: lectura de la entrega adicional,
+  comprobante del productor y ejercicios de la investigación
+  (Map.merge/3 y ranking con keyword lists).
+
+  No contiene reglas de negocio: el valor de las entregas, las
+  bonificaciones y el transporte se calculan solo en `Liquidacion`.
+  """
+
+  # ---------------------------------------------------------------
+  # Entrada adicional (pura: recibe texto y devuelve datos)
+  # ---------------------------------------------------------------
 
   @doc """
-  Parsea la cadena de texto de una entrega adicional.
-  Formato esperado: productor;tanque;dia;litros;grasa
+  Convierte el texto de una entrega adicional en un mapa.
+
+  Formato esperado: `productor;tanque;dia;litros;grasa`.
+
+  Devuelve `:omitir` si la línea está vacía (o es `nil`),
+  `{:ok, entrega}` si el formato es correcto, y
+  `{:error, :formato_invalido}` si no hay exactamente cinco campos, si el
+  día no es un entero limpio o si litros o grasa no son numéricos.
   """
+  def parsear_entrega_adicional(nil), do: :omitir
+
   def parsear_entrega_adicional(linea) do
     linea_limpia = String.trim(linea)
 
     if linea_limpia == "" do
       :omitir
     else
-      partes = String.split(linea_limpia, ~r/[;,\s:]+/)
+      campos = linea_limpia |> String.split(";") |> Enum.map(&String.trim/1)
 
-      case partes do
-        [prod, tanque, dia_str, litros_str, grasa_str] ->
-          with {dia, ""} <- Integer.parse(dia_str),
-               {litros, _} <- Float.parse(litros_str),
-               {grasa, _} <- Float.parse(grasa_str) do
-            {:ok, %{productor: prod, tanque: tanque, dia: dia, litros: litros, grasa: grasa}}
+      case campos do
+        [productor, tanque, dia_txt, litros_txt, grasa_txt] ->
+          with {dia, ""} <- Integer.parse(dia_txt),
+               {litros, ""} <- Float.parse(litros_txt),
+               {grasa, ""} <- Float.parse(grasa_txt) do
+            {:ok, %{productor: productor, tanque: tanque, dia: dia, litros: litros, grasa: grasa}}
           else
             _ -> {:error, :formato_invalido}
           end
@@ -42,76 +53,83 @@ defmodule Auxiliares do
     end
   end
 
-  @doc """
-  Calcula el valor de una entrega individual según el porcentaje de grasa.
-  """
-  def valor_entrega(entrega) do
-    base = entrega.litros * @tarifa_base
-
-    cond do
-      entrega.grasa >= @grasa_bonificacion -> base * @factor_bonificacion_grasa
-      entrega.grasa >= @grasa_sin_ajuste -> base
-      entrega.grasa >= @grasa_descuento_medio -> base * @factor_descuento_medio
-      true -> base * @factor_descuento_alto
-    end
-  end
+  # ---------------------------------------------------------------
+  # Comprobante (impura: imprime en pantalla)
+  # ---------------------------------------------------------------
 
   @doc """
   Imprime el comprobante semanal de un productor según su código.
+
+  Si el código no existe, lo indica sin fallar. Los valores salen de
+  `Liquidacion`, así que coinciden siempre con los de R4.
   """
-  def imprimir_comprobante(codigo_productor, productores, entregas_validas) do
-    productor = Enum.find(productores, &(&1.codigo == codigo_productor))
+  def imprimir_comprobante(codigo, productores, entregas_validas) do
+    case Enum.find(productores, fn p -> p.codigo == codigo end) do
+      nil ->
+        IO.puts("\n[!] El código de productor '#{codigo}' no existe.")
 
-    if is_nil(productor) do
-      IO.puts("\n[!] El código de productor '#{codigo_productor}' no existe.")
-    else
-      liq = Liquidacion.liquidar_productor(entregas_validas, productor)
-      entregas_prod = Enum.filter(entregas_validas, &(&1.productor == productor.codigo))
+      productor ->
+        entregas_productor = Enum.filter(entregas_validas, fn e -> e.productor == productor.codigo end)
+        liquidacion = Liquidacion.liquidar_productor(entregas_validas, productor)
+        detalle = Liquidacion.detalle_por_dia(entregas_productor)
 
+        IO.puts("\n==========================================")
+        IO.puts("        COMPROBANTE DE LIQUIDACION        ")
+        IO.puts("==========================================")
+        IO.puts("Productor: #{productor.nombre} (#{productor.codigo})")
+        IO.puts("------------------------------------------")
+        IO.puts("Detalle de entregas por día:")
 
-      IO.puts("        COMPROBANTE DE LIQUIDACION        ")
-      IO.puts("==========================================")
-      IO.puts("Productor: #{productor.nombre} (#{productor.codigo})")
-      IO.puts("Servicio de Transporte: #{if productor.transporte, do: "SÍ", else: "NO"}")
-      IO.puts("------------------------------------------")
-      IO.puts("Detalle de entregas por día:")
-
-      Enum.each(1..6, fn dia ->
-        entregas_dia = Enum.filter(entregas_prod, &(&1.dia == dia))
-
-        if entregas_dia != [] do
-          litros_dia = Enum.sum(Enum.map(entregas_dia, & &1.litros))
-          valor_dia = Enum.sum(Enum.map(entregas_dia, &valor_entrega/1))
-          bonif_dia = if litros_dia >= @litros_bonificacion, do: @bonificacion_diaria, else: 0
-          IO.puts("  Día #{dia}: Litros: #{litros_dia} L | Valor: $#{valor_dia} | Bonif: $#{bonif_dia}")
+        if detalle == [] do
+          IO.puts("  Sin entregas válidas.")
+        else
+          Enum.each(detalle, fn d ->
+            IO.puts(
+              "  Día #{d.dia}: #{d.litros} L | Valor: $#{redondear(d.valor)} | Bonificación: $#{redondear(d.bonificacion)}"
+            )
+          end)
         end
-      end)
 
-      IO.puts("------------------------------------------")
-      IO.puts("Total entregas (valor): $#{liq.valor_entregas}")
-      IO.puts("Total bonificaciones:   $#{liq.bonificaciones}")
-      IO.puts("Descuento transporte:  -$#{liq.transporte}")
-      IO.puts("------------------------------------------")
-      IO.puts("NETO A PAGAR:           $#{liq.neto}")
-      IO.puts("==========================================\n")
+        IO.puts("------------------------------------------")
+        IO.puts("Total entregas (valor): $#{redondear(liquidacion.valor_entregas)}")
+        IO.puts("Total bonificaciones:   $#{redondear(liquidacion.bonificaciones)}")
+        IO.puts("Descuento transporte:  -$#{redondear(liquidacion.transporte)}")
+        IO.puts("------------------------------------------")
+        IO.puts("NETO A PAGAR:           $#{redondear(liquidacion.neto)}")
+        IO.puts("==========================================\n")
     end
   end
 
+  # ---------------------------------------------------------------
+  # Investigación (puras)
+  # ---------------------------------------------------------------
+
   @doc """
-  Combina los litros diarios de este centro con un centro vecino usando Map.merge/3.
+  Combina los litros diarios de este centro con los de un centro vecino.
+
+  Usa `Map.merge/3`: si un día aparece en ambos mapas se suman los valores;
+  si aparece en uno solo, se conserva tal cual.
   """
   def combinar_centros(litros_centro_actual, centro_vecino) do
-    Map.merge(litros_centro_actual, centro_vecino, fn _dia, v1, v2 -> v1 + v2 end)
+    Map.merge(litros_centro_actual, centro_vecino, fn _dia, litros_a, litros_b -> litros_a + litros_b end)
   end
 
   @doc """
-Genera un ranking de los N productores con mayor pago neto usando Keyword Lists.
-Las Keyword Lists son listas de tuplas de 2 elementos [{:átomo, valor}].
-"""
-def ranking(productores_liquidados, top_n) do
-  productores_liquidados
-  |> Enum.map(fn p -> {String.to_atom(p.codigo), p.neto} end)
-  |> Enum.sort_by(fn {_cod, neto} -> neto end, :desc)
-  |> Enum.take(top_n)
-end
+  Genera el ranking de los `top_n` productores con mayor pago neto.
+
+  Devuelve una keyword list `[{:P01, neto}, ...]` ordenada de mayor a menor.
+  """
+  def ranking(liquidaciones, top_n) do
+    liquidaciones
+    |> Enum.map(fn l -> {String.to_atom(l.codigo), l.neto} end)
+    |> Enum.sort_by(fn {_codigo, neto} -> neto end, :desc)
+    |> Enum.take(top_n)
+  end
+
+  # ---------------------------------------------------------------
+  # Privadas
+  # ---------------------------------------------------------------
+
+  # Redondea a 2 decimales para que el comprobante sea legible.
+  defp redondear(numero), do: Float.round(numero / 1, 2)
 end

@@ -69,6 +69,24 @@ defmodule Liquidacion do
     }
   end
 
+  @doc """
+  Devuelve el detalle de un productor día por día: litros, valor de las
+  entregas y bonificación de ese día, ordenado por día.
+
+  Recibe únicamente las entregas válidas de ese productor. Los días sin
+  entregas no aparecen.
+  """
+  def detalle_por_dia(entregas_productor) do
+    entregas_productor
+    |> Enum.group_by(fn e -> e.dia end)
+    |> Enum.map(fn {dia, entregas_dia} ->
+      litros = entregas_dia |> Enum.map(fn e -> e.litros end) |> Enum.sum()
+      valor = entregas_dia |> Enum.map(&valor_entrega/1) |> Enum.sum()
+      %{dia: dia, litros: litros, valor: valor, bonificacion: bonificacion_diaria(litros)}
+    end)
+    |> Enum.sort_by(fn d -> d.dia end)
+  end
+
   defp litros_diarios(entregas_productor) do
     entregas_productor
     |> Enum.group_by(fn e -> e.dia end, fn e -> e.litros end)
