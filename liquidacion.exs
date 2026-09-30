@@ -69,14 +69,12 @@ defmodule Liquidacion do
     }
   end
 
-  # Devuelve una lista de tuplas con el dia y el total de litros entregados por un productor en ese dia
   defp litros_diarios(entregas_productor) do
     entregas_productor
     |> Enum.group_by(fn e -> e.dia end, fn e -> e.litros end)
     |> Enum.map(fn {dia, lista_litros} -> {dia, Enum.sum(lista_litros)} end)
   end
 
-  # La función recibe el total de litros de un día y devuelve 25000 o 0
   defp bonificacion_diaria(total_litros) do
     if total_litros >= @litros_bonificacion do
       @bonificacion_diaria
@@ -85,7 +83,6 @@ defmodule Liquidacion do
     end
   end
 
-  # El valor inicial de una entrega válida y se modifica de acuerdo con el porcentaje de grasa
   defp valor_entrega(entrega) do
     base = entrega.litros * @tarifa_base
 
@@ -97,7 +94,6 @@ defmodule Liquidacion do
     end
   end
 
-  # El valor del descuento al centro por el prestamo del servicio de transporte
   defp descuento_transporte(productor, dias_con_entrega) do
     if productor.transporte do
       @costo_transporte * dias_con_entrega

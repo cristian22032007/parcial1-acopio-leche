@@ -13,7 +13,6 @@ lista_productores = Datos.productores()
 lista_tanques = Datos.tanques()
 lista_entregas = Datos.entregas()
 
-# 1. Entrega adicional desde la consola
 IO.puts("==========================================")
 IO.puts("    REGISTRO DE ENTREGA ADICIONAL        ")
 IO.puts("==========================================")
@@ -41,7 +40,6 @@ todas_las_entregas =
       lista_entregas
   end
 
-# 2. Filtrar entregas válidas para reportes y liquidación
 entregas_validas =
   Enum.filter(todas_las_entregas, fn entrega ->
     case Validacion.validar_entrega(entrega, lista_productores, lista_tanques) do
@@ -50,7 +48,6 @@ entregas_validas =
     end
   end)
 
-# 3. Reportes R1 a R8
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R1: RECHAZADAS          ")
 IO.puts("==========================================")
@@ -93,7 +90,6 @@ IO.puts("          REPORTE R8: TODOS LOS TANQUES   ")
 IO.puts("==========================================")
 IO.inspect(Reportes.reporte_r8(lista_productores, lista_tanques, entregas_validas))
 
-# 4. Investigación Parte C: Map.merge/3, Keyword Lists y :timer.tc/1
 IO.puts("\n==========================================")
 IO.puts("     INVESTIGACION: Map.merge/3          ")
 IO.puts("==========================================")
@@ -121,7 +117,6 @@ IO.puts("==========================================")
 {tiempo_us, _resultado} = :timer.tc(fn -> Reportes.reporte_r4(lista_productores, entregas_validas) end)
 IO.puts("Tiempo de ejecucion del Reporte R4 (Liquidacion): #{tiempo_us} microsegundos (#{tiempo_us / 1000} ms)")
 
-# 5. Comprobante de Productor
 IO.puts("\n==========================================")
 IO.puts("      SOLICITUD DE COMPROBANTE            ")
 IO.puts("==========================================")
