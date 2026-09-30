@@ -134,4 +134,51 @@ defmodule Reportes do
 
     Enum.max_by(promedios, & &1.promedio_grasa)
   end
+
+  @doc """
+  R7: Porcentaje de leche aportado por cada productor respecto al total de leche válida.
+  """
+  def reporte_r7(productores, entregas_validas) do
+    total_general = Enum.sum(Enum.map(entregas_validas, & &1.litros))
+
+    if total_general > 0 do
+      productores
+      |> Enum.map(fn prod ->
+        litros_prod =
+          entregas_validas
+          |> Enum.filter(&(&1.productor == prod.codigo))
+          |> Enum.map(& &1.litros)
+          |> Enum.sum()
+
+        porcentaje = (litros_prod / total_general) * 100
+
+        %{
+          codigo: prod.codigo,
+          nombre: prod.nombre,
+          litros: litros_prod,
+          porcentaje: porcentaje
+        }
+      end)
+      |> Enum.sort_by(& &1.porcentaje, :desc)
+    else
+      []
+    end
+  end
+
+  @doc """
+  R8: Día con mayor cantidad de leche ingresada al centro de acopio.
+  """
+  def reporte_r8(entregas_validas) do
+    1..6
+    |> Enum.map(fn dia ->
+      litros_dia =
+        entregas_validas
+        |> Enum.filter(&(&1.dia == dia))
+        |> Enum.map(& &1.litros)
+        |> Enum.sum()
+
+      %{dia: dia, litros: litros_dia}
+    end)
+    |> Enum.max_by(& &1.litros)
+  end
 end
