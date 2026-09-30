@@ -84,4 +84,54 @@ defmodule Reportes do
     |> Enum.with_index(1)
     |> Enum.map(fn {liq, posicion} -> Map.put(liq, :posicion, posicion) end)
   end
+
+  @doc """
+  R5: Productores que entregaron leche en los 6 días y los que no entregaron ningún día.
+  """
+  def reporte_r5(productores, entregas_validas) do
+    entregaron_todos =
+      Enum.filter(productores, fn prod ->
+        dias_entrega =
+          entregas_validas
+          |> Enum.filter(&(&1.productor == prod.codigo))
+          |> Enum.map(& &1.dia)
+          |> Enum.uniq()
+
+        length(dias_entrega) == 6
+      end)
+
+    ningun_dia =
+      Enum.filter(productores, fn prod ->
+        !Enum.any?(entregas_validas, &(&1.productor == prod.codigo))
+      end)
+
+    %{entregaron_todos_los_dias: entregaron_todos, ningun_dia: ningun_dia}
+  end
+
+  @doc """
+  R6: Productor con el mayor promedio de grasa por litro entregado.
+  """
+  def reporte_r6(productores, entregas_validas) do
+    promedios =
+      productores
+      |> Enum.map(fn prod ->
+        entregas_prod = Enum.filter(entregas_validas, &(&1.productor == prod.codigo))
+        total_litros = Enum.sum(Enum.map(entregas_prod, & &1.litros))
+
+        if total_litros > 0 do
+          # Promedio ponderado de grasa por litro
+          grasa_ponderada =
+            entregas_prod
+            |> Enum.map(fn e -> e.litros * e.grasa end)
+            |> Enum.sum()
+
+          promedio = grasa_ponderada / total_litros
+          %{productor: prod, promedio_grasa: promedio}
+        else
+          %{productor: prod, promedio_grasa: 0.0}
+        end
+      end)
+
+    Enum.max_by(promedios, & &1.promedio_grasa)
+  end
 end
