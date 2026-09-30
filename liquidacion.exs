@@ -15,45 +15,45 @@ defmodule Liquidacion do
   @factor_descuento_medio 0.92
   @factor_descuento_alto 0.8
 
-@doc """
-Calcula la liquidación semanal de todos los productores.
+  @doc """
+  Calcula la liquidación semanal de todos los productores.
 
-Recorre la lista de productores (y no la de entregas) para que ninguno
-quede por fuera, incluso los que no tienen entregas válidas. Aplica
-`liquidar_productor/2` a cada uno.
+  Recorre la lista de productores (y no la de entregas) para que ninguno
+  quede por fuera, incluso los que no tienen entregas válidas. Aplica
+  `liquidar_productor/2` a cada uno.
 
-Devuelve una lista de mapas, uno por productor, en el mismo orden de la
-lista original. No ordena el resultado; el orden para R4 se hace en el
-módulo de reportes.
-"""
+  Devuelve una lista de mapas, uno por productor, en el mismo orden de la
+  lista original. No ordena el resultado; el orden para R4 se hace en el
+  módulo de reportes.
+  """
   def liquidar_todos(entregas, productores) do
     Enum.map(productores, fn productor -> liquidar_productor(entregas, productor) end)
   end
 
   @doc """
-Calcula la liquidación semanal de un productor.
+  Calcula la liquidación semanal de un productor.
 
-Recibe la lista de entregas válidas (de todos los productores) y el mapa
-de un productor. Se queda con las entregas de ese productor y calcula:
-litros totales, valor de las entregas (según la grasa), bonificaciones por
-volumen diario y descuento de transporte.
+  Recibe la lista de entregas válidas (de todos los productores) y el mapa
+  de un productor. Se queda con las entregas de ese productor y calcula:
+  litros totales, valor de las entregas (según la grasa), bonificaciones por
+  volumen diario y descuento de transporte.
 
-Un productor sin entregas válidas devuelve todos los valores en cero.
+  Un productor sin entregas válidas devuelve todos los valores en cero.
 
-Devuelve un mapa con las claves `:codigo`, `:nombre`, `:litros`,
-`:valor_entregas`, `:bonificaciones`, `:transporte` y `:neto`.
-"""
+  Devuelve un mapa con las claves `:codigo`, `:nombre`, `:litros`,
+  `:valor_entregas`, `:bonificaciones`, `:transporte` y `:neto`.
+  """
   def liquidar_productor(entregas, productor) do
-    EntregaIndividual = Enum.filter(&(&1.productor == productor.codigo))
+    entrega_individual = Enum.filter(entregas, &(&1.productor == productor.codigo))
 
-    litros = EntregaIndividual |> Enum.map(fn entrega -> entrega.litros end) |> Enum.sum()
-    valor = EntregaIndividual |> Enum.map(fn entrega -> valor_entrega(entrega) end) |> Enum.sum()
+    litros = entrega_individual |> Enum.map(fn entrega -> entrega.litros end) |> Enum.sum()
+    valor = entrega_individual |> Enum.map(fn entrega -> valor_entrega(entrega) end) |> Enum.sum()
 
-    totales_dia = litros_diarios(EntregaIndividual)
+    totales_dia = litros_diarios(entrega_individual)
 
     bonificaciones =
       totales_dia
-      |> Enum.map(fn {_, total} -> bonificacion_dia(total) end)
+      |> Enum.map(fn {_, total} -> bonificacion_diaria(total) end)
       |> Enum.sum()
 
     transporte = descuento_transporte(productor, length(totales_dia))
