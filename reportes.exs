@@ -6,7 +6,11 @@
 defmodule Reportes do
   Code.require_file("liquidacion.exs")
 
-  # R1: Entregas rechazadas con su motivo y cantidad de rechazos por motivo
+  @meta_diaria 2000
+
+  @doc """
+  R1: Entregas rechazadas con su motivo y cantidad de rechazos por motivo.
+  """
   def reporte_r1(entregas, productores, tanques) do
     rechazadas_con_motivo =
       Enum.flat_map(entregas, fn entrega ->
@@ -24,7 +28,9 @@ defmodule Reportes do
     %{entregas_rechazadas: rechazadas_con_motivo, conteo: conteo_motivos}
   end
 
-  # R2: Litros almacenados por tanque y porcentaje de ocupación
+  @doc """
+  R2: Litros almacenados por tanque y porcentaje de ocupación.
+  """
   def reporte_r2(tanques, entregas_validas) do
     tanques
     |> Enum.map(fn tanque ->
@@ -43,7 +49,9 @@ defmodule Reportes do
     |> Enum.sort_by(& &1.porcentaje, :desc)
   end
 
-  # R3: Litros recibidos por el centro en cada uno de los 6 días y cumplimiento de meta
+  @doc """
+  R3: Litros recibidos por el centro en cada uno de los 6 días y cumplimiento de meta (2000L).
+  """
   def reporte_r3(entregas_validas) do
     dias = 1..6
 
@@ -51,7 +59,7 @@ defmodule Reportes do
       Enum.map(dias, fn dia ->
         entregas_dia = Enum.filter(entregas_validas, &(&1.dia == dia))
         litros = Enum.sum(Enum.map(entregas_dia, & &1.litros))
-        cumplio = litros >= 2000
+        cumplio = litros >= @meta_diaria
         {dia, litros, cumplio}
       end)
 
@@ -65,7 +73,9 @@ defmodule Reportes do
     }
   end
 
-  # R4: Liquidación de todos los productores ordenada por pago neto de mayor a menor
+  @doc """
+  R4: Liquidación de todos los productores ordenada por pago neto de mayor a menor.
+  """
   def reporte_r4(productores, entregas_validas) do
     liquidaciones = Liquidacion.liquidar_todos(entregas_validas, productores)
 
