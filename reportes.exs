@@ -9,7 +9,7 @@ defmodule Reportes do
   @meta_diaria 2000
 
   @doc """
-  R1: Entregas rechazadas con su motivo y cantidad de rechazos por motivo.
+  R1: Entregas rechazadas con su motivo y cantidad de rechazos por cada motivo.
   """
   def reporte_r1(entregas, productores, tanques) do
     rechazadas_con_motivo =
@@ -29,7 +29,7 @@ defmodule Reportes do
   end
 
   @doc """
-  R2: Litros almacenados por tanque y porcentaje de ocupación.
+  R2: Litros almacenados por tanque y porcentaje de ocupación respecto de su capacidad.
   """
   def reporte_r2(tanques, entregas_validas) do
     tanques
@@ -50,7 +50,7 @@ defmodule Reportes do
   end
 
   @doc """
-  R3: Litros recibidos por el centro en cada uno de los 6 días y cumplimiento de meta (2000L).
+  R3: Litros recibidos por el centro en cada uno de los 6 días y cumplimiento de meta.
   """
   def reporte_r3(entregas_validas) do
     dias = 1..6
@@ -86,99 +86,126 @@ defmodule Reportes do
   end
 
   @doc """
-  R5: Productores que entregaron leche en los 6 días y los que no entregaron ningún día.
+  R5: Productor con mayor cantidad de litros entregados cada día (maneja empates)
+  y quién ocupó el primer lugar en más días.
   """
   def reporte_r5(productores, entregas_validas) do
-    entregaron_todos =
-      Enum.filter(productores, fn prod ->
-        dias_entrega =
-          entregas_validas
-          |> Enum.filter(&(&1.productor == prod.codigo))
-          |> Enum.map(& &1.dia)
-          |> Enum.uniq()
+    dias_detalle =
+      Enum.map(1..6, fn dia ->
+        entregas_dia = Enum.filter(entregas_validas, &(&1.dia == dia))
 
-        length(dias_entrega) == 6
+        litros_por_prod =
+          entregas_dia
+          |> Enum.group_by(& &1.productor, & &1.litros)
+          |> Enum.map(fn {p_code, lista_l} -> {p_code, Enum.sum(lista_l)} end)
+
+        if litros_por_prod == [] do
+          %{dia: dia, max_litros: 0, ganadores: []}
+        else
+          max_litros = Enum.map(litros_por_prod, fn {_p, l} -> l end) |> Enum.max()
+
+          ganadores_codigos =
+            litros_por_prod
+            |> Enum.filter(fn {_p, l} -> l == max_litros end)
+            |> Enum.map(fn {p, _l} -> p end)
+
+          ganadores = Enum.filter(productores, &(&1.codigo in ganadores_codigos))
+
+          %{dia: dia, max_litros: max_litros, ganadores: ganadores}
+        end
       end)
 
-    ningun_dia =
-      Enum.filter(productores, fn prod ->
-        !Enum.any?(entregas_validas, &(&1.productor == prod.codigo))
-      end)
+    conteo_primeros =
+      dias_detalle
+      |> Enum.flat_map(fn d -> Enum.map(d.ganadores, & &1.codigo) end)
+      |> Enum.reduce(%{}, fn p_code, acc -> Map.update(acc, p_code, 1, &(&1 + 1)) end)
 
-    %{entregaron_todos_los_dias: entregaron_todos, ningun_dia: ningun_dia}
+    max_dias =
+      if conteo_primeros == %{} do
+        0
+      else
+        conteo_primeros |> Map.values() |> Enum.max()
+      end
+
+    mas_dias_codigos =
+      conteo_primeros
+      |> Enum.filter(fn {_p, count} -> count == max_dias end)
+      |> Enum.map(fn {p, _c} -> p end)
+
+    mas_dias_productores = Enum.filter(productores, &(&1.codigo in mas_dias_codigos))
+
+    %{
+      detalle_dias: dias_detalle,
+      mas_dias_primer_lugar: mas_dias_productores,
+      dias_ganados: max_dias
+    }
   end
 
   @doc """
-  R6: Productor con el mayor promedio de grasa por litro entregado.
+  R6: Productor con mejor calidad (mayor grasa ponderada) entre quienes tengan
+  al menos 3 entregas válidas.
   """
   def reporte_r6(productores, entregas_validas) do
-    promedios =
+    candidatos =
       productores
       |> Enum.map(fn prod ->
         entregas_prod = Enum.filter(entregas_validas, &(&1.productor == prod.codigo))
-        total_litros = Enum.sum(Enum.map(entregas_prod, & &1.litros))
 
-        if total_litros > 0 do
-          # Promedio ponderado de grasa por litro
+        if length(entregas_prod) >= 3 do
+          total_litros = Enum.sum(Enum.map(entregas_prod, & &1.litros))
+
           grasa_ponderada =
             entregas_prod
             |> Enum.map(fn e -> e.litros * e.grasa end)
             |> Enum.sum()
 
-          promedio = grasa_ponderada / total_litros
-          %{productor: prod, promedio_grasa: promedio}
+          promedio = if total_litros > 0, do: grasa_ponderada / total_litros, else: 0.0
+
+          %{productor: prod, num_entregas: length(entregas_prod), promedio_grasa: promedio}
         else
-          %{productor: prod, promedio_grasa: 0.0}
+          nil
         end
       end)
+      |> Enum.reject(&is_nil/1)
 
-    Enum.max_by(promedios, & &1.promedio_grasa)
-  end
-
-  @doc """
-  R7: Porcentaje de leche aportado por cada productor respecto al total de leche válida.
-  """
-  def reporte_r7(productores, entregas_validas) do
-    total_general = Enum.sum(Enum.map(entregas_validas, & &1.litros))
-
-    if total_general > 0 do
-      productores
-      |> Enum.map(fn prod ->
-        litros_prod =
-          entregas_validas
-          |> Enum.filter(&(&1.productor == prod.codigo))
-          |> Enum.map(& &1.litros)
-          |> Enum.sum()
-
-        porcentaje = (litros_prod / total_general) * 100
-
-        %{
-          codigo: prod.codigo,
-          nombre: prod.nombre,
-          litros: litros_prod,
-          porcentaje: porcentaje
-        }
-      end)
-      |> Enum.sort_by(& &1.porcentaje, :desc)
+    if candidatos != [] do
+      Enum.max_by(candidatos, & &1.promedio_grasa)
     else
-      []
+      %{productor: nil, promedio_grasa: 0.0}
     end
   end
 
   @doc """
-  R8: Día con mayor cantidad de leche ingresada al centro de acopio.
+  R7: Total pagado por el centro durante la semana y costo promedio pagado por litro.
   """
-  def reporte_r8(entregas_validas) do
-    1..6
-    |> Enum.map(fn dia ->
-      litros_dia =
-        entregas_validas
-        |> Enum.filter(&(&1.dia == dia))
-        |> Enum.map(& &1.litros)
-        |> Enum.sum()
+  def reporte_r7(productores, entregas_validas) do
+    liquidaciones = Liquidacion.liquidar_todos(entregas_validas, productores)
+    total_pagado = Enum.sum(Enum.map(liquidaciones, & &1.neto))
+    total_litros = Enum.sum(Enum.map(entregas_validas, & &1.litros))
 
-      %{dia: dia, litros: litros_dia}
+    costo_promedio = if total_litros > 0, do: total_pagado / total_litros, else: 0.0
+
+    %{
+      total_pagado: total_pagado,
+      total_litros: total_litros,
+      costo_promedio_por_litro: costo_promedio
+    }
+  end
+
+  @doc """
+  R8: Productores que realizaron al menos una entrega válida en todos los tanques.
+  """
+  def reporte_r8(productores, tanques, entregas_validas) do
+    total_tanques_count = length(tanques)
+
+    Enum.filter(productores, fn prod ->
+      tanques_usados =
+        entregas_validas
+        |> Enum.filter(&(&1.productor == prod.codigo))
+        |> Enum.map(& &1.tanque)
+        |> Enum.uniq()
+
+      length(tanques_usados) == total_tanques_count
     end)
-    |> Enum.max_by(& &1.litros)
   end
 end
