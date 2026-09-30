@@ -70,7 +70,8 @@ IO.inspect(res_r3)
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R4: LIQUIDACION         ")
 IO.puts("==========================================")
-IO.inspect(Reportes.reporte_r4(lista_productores, entregas_validas))
+liquidaciones_r4 = Reportes.reporte_r4(lista_productores, entregas_validas)
+IO.inspect(liquidaciones_r4)
 
 IO.puts("\n==========================================")
 IO.puts("          REPORTE R5: LIDERES DIARIOS     ")
@@ -92,7 +93,7 @@ IO.puts("          REPORTE R8: TODOS LOS TANQUES   ")
 IO.puts("==========================================")
 IO.inspect(Reportes.reporte_r8(lista_productores, lista_tanques, entregas_validas))
 
-# 4. Investigación Map.merge/3
+# 4. Investigación Parte C: Map.merge/3, Keyword Lists y :timer.tc/1
 IO.puts("\n==========================================")
 IO.puts("     INVESTIGACION: Map.merge/3          ")
 IO.puts("==========================================")
@@ -106,6 +107,19 @@ centro_vecino = %{1 => 1850.5, 2 => 2100, 3 => 1640, 5 => 2350, 7 => 800}
 mapa_combinado = Auxiliares.combinar_centros(litros_actuales, centro_vecino)
 IO.puts("Mapa de litros combinados con centro vecino:")
 IO.inspect(mapa_combinado)
+
+IO.puts("\n==========================================")
+IO.puts("   RANKING CON KEYWORD LISTS   ")
+IO.puts("==========================================")
+top3_ranking = Auxiliares.ranking(liquidaciones_r4, 3)
+IO.puts("Top 3 productores (formato Keyword List [{:productor, neto}]):")
+IO.inspect(top3_ranking)
+
+IO.puts("\n==========================================")
+IO.puts("   MEDICION CON :timer.tc/1      ")
+IO.puts("==========================================")
+{tiempo_us, _resultado} = :timer.tc(fn -> Reportes.reporte_r4(lista_productores, entregas_validas) end)
+IO.puts("Tiempo de ejecucion del Reporte R4 (Liquidacion): #{tiempo_us} microsegundos (#{tiempo_us / 1000} ms)")
 
 # 5. Comprobante de Productor
 IO.puts("\n==========================================")
