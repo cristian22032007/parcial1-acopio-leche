@@ -8,25 +8,41 @@ defmodule Reportes do
 
   @meta_diaria 2000
 
+   @motivos_rechazo [
+    :productor_desconocido,
+    :tanque_desconocido,
+    :dia_invalido,
+    :litros_fuera_de_rango,
+    :porcentaje_invalido
+  ]
+
   @doc """
   R1: Entregas rechazadas con su motivo y cantidad de rechazos por cada motivo.
   """
   def reporte_r1(entregas, productores, tanques) do
-    rechazadas_con_motivo =
-      Enum.flat_map(entregas, fn entrega ->
-        case Validacion.validar_entrega(entrega, productores, tanques) do
-          {:error, motivo} -> [{entrega, motivo}]
-          {:ok, _} -> []
-        end
-      end)
+  rechazadas_con_motivo =
+    Enum.flat_map(entregas, fn entrega ->
+      case Validacion.validar_entrega(entrega, productores, tanques) do
+        {:error, motivo} -> [{entrega, motivo}]
+        {:ok, _} -> []
+      end
+    end)
 
-    conteo_motivos =
-      Enum.reduce(rechazadas_con_motivo, %{}, fn {_entrega, motivo}, acc ->
-        Map.update(acc, motivo, 1, &(&1 + 1))
-      end)
+  conteo_motivos =
+    Enum.reduce(@motivos_rechazo, %{}, fn motivo, acc ->
+      Map.put(acc, motivo, 0)
+    end)
 
-    %{entregas_rechazadas: rechazadas_con_motivo, conteo: conteo_motivos}
-  end
+  conteo_motivos =
+    Enum.reduce(rechazadas_con_motivo, conteo_motivos, fn {_entrega, motivo}, acc ->
+      Map.update!(acc, motivo, &(&1 + 1))
+    end)
+
+  %{
+    entregas_rechazadas: rechazadas_con_motivo,
+    conteo: conteo_motivos
+  }
+end
 
   @doc """
   R2: Litros almacenados por tanque y porcentaje de ocupación respecto de su capacidad.
