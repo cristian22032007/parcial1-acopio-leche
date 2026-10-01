@@ -27,30 +27,36 @@ defmodule Auxiliares do
   """
   def parsear_entrega_adicional(nil), do: :omitir
 
-  def parsear_entrega_adicional(linea) do
-    linea_limpia = String.trim(linea)
+ def parsear_entrega_adicional(linea) do
+  linea_limpia = String.trim(linea)
 
-    if linea_limpia == "" do
-      :omitir
-    else
-      campos = linea_limpia |> String.split(";") |> Enum.map(&String.trim/1)
+  if linea_limpia == "" do
+    :omitir
+  else
+    partes = String.split(linea_limpia, ";")
 
-      case campos do
-        [productor, tanque, dia_txt, litros_txt, grasa_txt] ->
-          with {dia, ""} <- Integer.parse(dia_txt),
-               {litros, ""} <- Float.parse(litros_txt),
-               {grasa, ""} <- Float.parse(grasa_txt) do
-            {:ok, %{productor: productor, tanque: tanque, dia: dia, litros: litros, grasa: grasa}}
-          else
-            _ -> {:error, :formato_invalido}
-          end
+    case partes do
+      [prod, tanque, dia_str, litros_str, grasa_str] ->
+        with {dia, ""} <- Integer.parse(String.trim(dia_str)),
+             {litros, ""} <- Float.parse(String.trim(litros_str)),
+             {grasa, ""} <- Float.parse(String.trim(grasa_str)) do
+          {:ok,
+           %{
+             productor: String.trim(prod),
+             tanque: String.trim(tanque),
+             dia: dia,
+             litros: litros,
+             grasa: grasa
+           }}
+        else
+          _ -> {:error, :formato_invalido}
+        end
 
-        _ ->
-          {:error, :formato_invalido}
-      end
+      _ ->
+        {:error, :formato_invalido}
     end
   end
-
+end
   # Comprobante (impura: imprime en pantalla)
 
   @doc """

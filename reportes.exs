@@ -18,16 +18,23 @@ defmodule Reportes do
   @doc """
   R1: Entregas rechazadas con su motivo y cantidad de rechazos por cada motivo.
   """
-  def reporte_r1(rechazadas) do
-    conteo_inicial = Map.new(@motivos_rechazo, fn motivo -> {motivo, 0} end)
 
-    conteo =
-      Enum.reduce(rechazadas, conteo_inicial, fn {_entrega, motivo}, acc ->
-        Map.update!(acc, motivo, &(&1 + 1))
-      end)
+def reporte_r1(rechazadas) do
+  conteo_motivos =
+    Enum.reduce(@motivos_rechazo, %{}, fn motivo, acc ->
+      Map.put(acc, motivo, 0)
+    end)
 
-    %{entregas_rechazadas: rechazadas, conteo: conteo}
-  end
+  conteo_motivos =
+    Enum.reduce(rechazadas, conteo_motivos, fn {_entrega, motivo}, acc ->
+      Map.update!(acc, motivo, &(&1 + 1))
+    end)
+
+  %{
+    entregas_rechazadas: rechazadas,
+    conteo: conteo_motivos
+  }
+end
 
   @doc """
   R2: Litros almacenados por tanque y porcentaje de ocupación respecto de su capacidad.
