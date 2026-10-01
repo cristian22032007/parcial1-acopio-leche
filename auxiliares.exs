@@ -68,37 +68,39 @@ end
   def imprimir_comprobante(codigo, productores, entregas_validas) do
     case Enum.find(productores, fn p -> p.codigo == codigo end) do
       nil ->
-        IO.puts("\n[!] El código de productor '#{codigo}' no existe.")
+        Util2.mostrar("\n[!] El código de productor '#{codigo}' no existe.", :mensaje)
 
       productor ->
-        entregas_productor = Enum.filter(entregas_validas, fn e -> e.productor == productor.codigo end)
+        entregas_productor =
+          Util2.aplicar_filtro(entregas_validas, fn e -> e.productor == productor.codigo end)
         liquidacion = Liquidacion.liquidar_productor(entregas_validas, productor)
         detalle = Liquidacion.detalle_por_dia(entregas_productor)
 
-        IO.puts("\n\n          COMPROBANTE DE LIQUIDACION        ")
-        IO.puts("==========================================")
-        IO.puts("Productor: #{productor.nombre} (#{productor.codigo})")
-        IO.puts("------------------------------------------")
-        IO.puts("Detalle de entregas por día:")
+        Util2.mostrar("\n\n          COMPROBANTE DE LIQUIDACION        ", :mensaje)
+        Util2.mostrar("==========================================", :mensaje)
+        Util2.mostrar("Productor: #{productor.nombre} (#{productor.codigo})", :mensaje)
+        Util2.mostrar("------------------------------------------", :mensaje)
+        Util2.mostrar("Detalle de entregas por día:", :mensaje)
 
         if detalle == [] do
-          IO.puts("  Sin entregas válidas.")
+          Util2.mostrar("  Sin entregas válidas.", :mensaje)
         else
-          Enum.each(detalle, fn d ->
-            IO.puts(
-              "  Día #{d.dia}: #{d.litros} L | Valor: $#{redondear(d.valor)} | Bonificación: $#{redondear(d.bonificacion)}"
-            )
+          detalle
+          |> Util2.convertir_coleccion_mensaje(fn d ->
+            "  Día #{d.dia}: #{d.litros} L | Valor: $#{redondear(d.valor)} | Bonificación: $#{redondear(d.bonificacion)}"
           end)
+          |> Enum.join("\n")
+          |> Util2.mostrar(:mensaje)
         end
 
-        IO.puts("------------------------------------------")
-        IO.puts("Total de entregas:      #{length(entregas_productor)}")
-        IO.puts("Valor total entregas:   $#{redondear(liquidacion.valor_entregas)}")
-        IO.puts("Total bonificaciones:   $#{redondear(liquidacion.bonificaciones)}")
-        IO.puts("Descuento transporte:  -$#{redondear(liquidacion.transporte)}")
-        IO.puts("------------------------------------------")
-        IO.puts("NETO A PAGAR:           $#{redondear(liquidacion.neto)}")
-        IO.puts("==========================================\n")
+        Util2.mostrar("------------------------------------------", :mensaje)
+        Util2.mostrar("Total de entregas:      #{length(entregas_productor)}", :mensaje)
+        Util2.mostrar("Valor total entregas:   $#{redondear(liquidacion.valor_entregas)}", :mensaje)
+        Util2.mostrar("Total bonificaciones:   $#{redondear(liquidacion.bonificaciones)}", :mensaje)
+        Util2.mostrar("Descuento transporte:  -$#{redondear(liquidacion.transporte)}", :mensaje)
+        Util2.mostrar("------------------------------------------", :mensaje)
+        Util2.mostrar("NETO A PAGAR:           $#{redondear(liquidacion.neto)}", :mensaje)
+        Util2.mostrar("==========================================\n", :mensaje)
     end
   end
 
@@ -122,7 +124,7 @@ end
   def ranking(liquidaciones, top_n) do
     liquidaciones
     |> Enum.map(fn l -> {String.to_atom(l.codigo), l.neto} end)
-    |> Enum.sort_by(fn {_codigo, neto} -> neto end, :desc)
+    |> Util2.ordenar(:desc, fn {_codigo, neto} -> neto end)
     |> Enum.take(top_n)
   end
 

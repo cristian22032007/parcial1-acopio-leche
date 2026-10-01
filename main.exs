@@ -3,11 +3,11 @@
 #       LONDOÑO GOMEZ JUAN PABLO,
 #       QUINTERO GIL JUAN CAMILO
 
+Code.require_file("Util2.exs")
 Code.require_file("datos.exs")
 Code.require_file("validacion.exs")
 Code.require_file("liquidacion.exs")
 Code.require_file("reportes.exs")
-Code.require_file("Util2.exs")
 Code.require_file("auxiliares.exs")
 
 lista_productores = Datos.productores()
@@ -15,8 +15,8 @@ lista_tanques = Datos.tanques()
 lista_entregas = Datos.entregas()
 
 
-IO.puts("\n\n          REGISTRO DE ENTREGA ADICIONAL        ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REGISTRO DE ENTREGA ADICIONAL        ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 linea_adicional =
   Util2.ingresar(
     "Ingrese una entrega adicional (productor;tanque;dia;litros;grasa) o Enter para omitir: ",
@@ -47,50 +47,50 @@ rechazadas = for {e, {:error, motivo}} <- resultados, do: {e, motivo}
 liquidaciones = Liquidacion.liquidar_todos(entregas_validas, lista_productores)
 
 
-IO.puts("\n\n          REPORTE R1: RECHAZADAS          ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REPORTE R1: RECHAZADAS          ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 IO.inspect(Reportes.reporte_r1(rechazadas))
 
 
-IO.puts("\n\n          REPORTE R2: TANQUES             ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REPORTE R2: TANQUES             ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 IO.inspect(Reportes.reporte_r2(lista_tanques, entregas_validas))
 
 
-IO.puts("\n\n          REPORTE R3: METAS DIARIAS       ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REPORTE R3: METAS DIARIAS       ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 res_r3 = Reportes.reporte_r3(entregas_validas)
 IO.inspect(res_r3)
 
 
-IO.puts("\n\n          REPORTE R4: LIQUIDACION         ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REPORTE R4: LIQUIDACION         ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 liquidaciones_r4 = Reportes.reporte_r4(liquidaciones)
 IO.inspect(liquidaciones_r4)
 
 
-IO.puts("\n\n          REPORTE R5: LIDERES DIARIOS     ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REPORTE R5: LIDERES DIARIOS     ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 IO.inspect(Reportes.reporte_r5(lista_productores, entregas_validas))
 
 
-IO.puts("\n\n          REPORTE R6: MEJOR CALIDAD       ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REPORTE R6: MEJOR CALIDAD       ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 IO.inspect(Reportes.reporte_r6(lista_productores, entregas_validas))
 
 
-IO.puts("\n\n          REPORTE R7: TOTAL PAGADO        ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REPORTE R7: TOTAL PAGADO        ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 IO.inspect(Reportes.reporte_r7(liquidaciones))
 
 
-IO.puts("\n\n          REPORTE R8: TODOS LOS TANQUES   ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          REPORTE R8: TODOS LOS TANQUES   ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 IO.inspect(Reportes.reporte_r8(lista_productores, lista_tanques, entregas_validas))
 
 
-IO.puts("\n\n          INVESTIGACION: Map.merge/3          ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          INVESTIGACION: Map.merge/3          ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 litros_actuales =
   res_r3.detalle_dias
   |> Enum.map(fn {dia, litros, _cumplio} -> {dia, litros} end)
@@ -105,30 +105,32 @@ centro_vecino = %{
 }
 
 mapa_combinado = Auxiliares.combinar_centros(litros_actuales, centro_vecino)
-IO.puts("Mapa de litros combinados con centro vecino:")
+Util2.mostrar("Mapa de litros combinados con centro vecino:", :mensaje)
 IO.inspect(mapa_combinado)
 
 
-IO.puts("\n\n          RANKING CON KEYWORD LISTS   ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          RANKING CON KEYWORD LISTS   ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 top3_ranking = Auxiliares.ranking(liquidaciones_r4, 3)
-IO.puts("Top 3 productores (formato Keyword List [{:productor, neto}]):")
+Util2.mostrar("Top 3 productores (formato Keyword List [{:productor, neto}]):", :mensaje)
 IO.inspect(top3_ranking)
 
 
-IO.puts("\n\n          MEDICION CON :timer.tc/1      ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          MEDICION CON :timer.tc/1      ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 {tiempo_us, _resultado} =
   :timer.tc(fn -> Liquidacion.liquidar_todos(entregas_validas, lista_productores) end)
 
-IO.puts("Tiempo de ejecucion de la liquidacion de todos los productores:
-#{tiempo_us} microsegundos (#{tiempo_us / 1000} ms)")
+Util2.mostrar(
+  "Tiempo de ejecucion de la liquidacion de todos los productores:
+#{tiempo_us} microsegundos (#{tiempo_us / 1000} ms)",
+  :mensaje
+)
 
 
-IO.puts("\n\n          SOLICITUD DE COMPROBANTE            ")
-IO.puts("==========================================")
+Util2.mostrar("\n\n          SOLICITUD DE COMPROBANTE            ", :mensaje)
+Util2.mostrar("==========================================", :mensaje)
 codigo_ingresado =
-  (IO.gets("Ingrese el codigo del productor para ver comprobante (ej: P01): ") || "")
-  |> String.trim()
+  Util2.ingresar("Ingrese el codigo del productor para ver comprobante (ej: P01): ", :texto)
 
 Auxiliares.imprimir_comprobante(codigo_ingresado, lista_productores, entregas_validas)

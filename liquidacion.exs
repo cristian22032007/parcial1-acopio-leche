@@ -44,7 +44,7 @@ defmodule Liquidacion do
   `:valor_entregas`, `:bonificaciones`, `:transporte` y `:neto`.
   """
   def liquidar_productor(entregas, productor) do
-    entrega_individual = Enum.filter(entregas, &(&1.productor == productor.codigo))
+    entrega_individual = Util2.aplicar_filtro(entregas, &(&1.productor == productor.codigo))
 
     litros = entrega_individual |> Enum.map(fn entrega -> entrega.litros end) |> Enum.sum()
     valor = entrega_individual |> Enum.map(fn entrega -> valor_entrega(entrega) end) |> Enum.sum()
@@ -84,7 +84,7 @@ defmodule Liquidacion do
       valor = entregas_dia |> Enum.map(&valor_entrega/1) |> Enum.sum()
       %{dia: dia, litros: litros, valor: valor, bonificacion: bonificacion_diaria(litros)}
     end)
-    |> Enum.sort_by(fn d -> d.dia end)
+    |> Util2.ordenar(:asc, fn d -> d.dia end)
   end
 
   defp litros_diarios(entregas_productor) do

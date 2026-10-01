@@ -42,7 +42,7 @@ end
   def reporte_r2(tanques, entregas_validas) do
     tanques
     |> Enum.map(fn tanque ->
-      entregas_tanque = Enum.filter(entregas_validas, &(&1.tanque == tanque.id))
+      entregas_tanque = Util2.aplicar_filtro(entregas_validas, &(&1.tanque == tanque.id))
       litros = Enum.sum(Enum.map(entregas_tanque, & &1.litros))
       porcentaje = (litros / tanque.capacidad) * 100
 
@@ -54,7 +54,7 @@ end
         porcentaje: porcentaje
       }
     end)
-    |> Enum.sort_by(& &1.porcentaje, :desc)
+    |> Util2.ordenar(:desc, & &1.porcentaje)
   end
 
   @doc """
@@ -65,7 +65,7 @@ end
 
     litros_por_dia =
       Enum.map(dias, fn dia ->
-        entregas_dia = Enum.filter(entregas_validas, &(&1.dia == dia))
+        entregas_dia = Util2.aplicar_filtro(entregas_validas, &(&1.dia == dia))
         litros = Enum.sum(Enum.map(entregas_dia, & &1.litros))
         cumplio = litros >= @meta_diaria
         {dia, litros, cumplio}
@@ -86,7 +86,7 @@ end
   """
   def reporte_r4(liquidaciones) do
     liquidaciones
-    |> Enum.sort_by(& &1.neto, :desc)
+    |> Util2.ordenar(:desc, & &1.neto)
     |> Enum.with_index(1)
     |> Enum.map(fn {liq, posicion} -> Map.put(liq, :posicion, posicion) end)
   end
@@ -98,7 +98,7 @@ end
   def reporte_r5(productores, entregas_validas) do
     dias_detalle =
       Enum.map(1..6, fn dia ->
-        entregas_dia = Enum.filter(entregas_validas, &(&1.dia == dia))
+        entregas_dia = Util2.aplicar_filtro(entregas_validas, &(&1.dia == dia))
 
         litros_por_prod =
           entregas_dia
@@ -112,10 +112,10 @@ end
 
           ganadores_codigos =
             litros_por_prod
-            |> Enum.filter(fn {_p, l} -> l == max_litros end)
+            |> Util2.aplicar_filtro(fn {_p, l} -> l == max_litros end)
             |> Enum.map(fn {p, _l} -> p end)
 
-          ganadores = Enum.filter(productores, &(&1.codigo in ganadores_codigos))
+          ganadores = Util2.aplicar_filtro(productores, &(&1.codigo in ganadores_codigos))
 
           %{dia: dia, max_litros: max_litros, ganadores: ganadores}
         end
@@ -135,10 +135,10 @@ end
 
     mas_dias_codigos =
       conteo_primeros
-      |> Enum.filter(fn {_p, count} -> count == max_dias end)
+      |> Util2.aplicar_filtro(fn {_p, count} -> count == max_dias end)
       |> Enum.map(fn {p, _c} -> p end)
 
-    mas_dias_productores = Enum.filter(productores, &(&1.codigo in mas_dias_codigos))
+    mas_dias_productores = Util2.aplicar_filtro(productores, &(&1.codigo in mas_dias_codigos))
 
     %{
       detalle_dias: dias_detalle,
@@ -155,7 +155,7 @@ end
     candidatos =
       productores
       |> Enum.map(fn prod ->
-        entregas_prod = Enum.filter(entregas_validas, &(&1.productor == prod.codigo))
+        entregas_prod = Util2.aplicar_filtro(entregas_validas, &(&1.productor == prod.codigo))
 
         if length(entregas_prod) >= 3 do
           total_litros = Enum.sum(Enum.map(entregas_prod, & &1.litros))
@@ -203,10 +203,10 @@ end
   def reporte_r8(productores, tanques, entregas_validas) do
     total_tanques_count = length(tanques)
 
-    Enum.filter(productores, fn prod ->
+    Util2.aplicar_filtro(productores, fn prod ->
       tanques_usados =
         entregas_validas
-        |> Enum.filter(&(&1.productor == prod.codigo))
+        |> Util2.aplicar_filtro(&(&1.productor == prod.codigo))
         |> Enum.map(& &1.tanque)
         |> Enum.uniq()
 
