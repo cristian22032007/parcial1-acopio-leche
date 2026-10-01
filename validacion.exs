@@ -66,8 +66,8 @@ defmodule Validacion do
       else
        {:error, :litros_fuera_de_rango}
       end
-    else
-     {:error, :litros_fuera_de_rango}
+      else
+       {:error, :litros_fuera_de_rango}
     end
   end
 
@@ -79,7 +79,7 @@ defmodule Validacion do
         {:error, :porcentaje_invalido}
       end
     else
-      {:error, :porcentaje_invalido}
+        {:error, :porcentaje_invalido}
     end
   end
  end

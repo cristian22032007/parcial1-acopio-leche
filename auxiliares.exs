@@ -27,7 +27,7 @@ defmodule Auxiliares do
   """
   def parsear_entrega_adicional(nil), do: :omitir
 
- def parsear_entrega_adicional(linea) do
+  def parsear_entrega_adicional(linea) do
   linea_limpia = String.trim(linea)
 
   if linea_limpia == "" do
@@ -128,7 +128,7 @@ end
   # Privadas
 
   # Redondea a 2 decimales para que el comprobante sea legible.
- defp redondear(numero) do
+  defp redondear(numero) do
   :erlang.float_to_binary(numero / 1, decimals: 2)
 end
 end
