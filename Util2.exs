@@ -1,3 +1,9 @@
+#   Integrantes:
+#       DELGADO CRUZ CRISTIAN FERNANDO,
+#       LONDOÑO GOMEZ JUAN PABLO,
+#       QUINTERO GIL JUAN CAMILO
+
+
 defmodule Util2 do
   @moduledoc """
   Funciones auxiliares de propósito general para entrada y salida de datos,
