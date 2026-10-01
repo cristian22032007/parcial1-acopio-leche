@@ -92,7 +92,8 @@ end
         end
 
         IO.puts("------------------------------------------")
-        IO.puts("Total entregas (valor): $#{redondear(liquidacion.valor_entregas)}")
+        IO.puts("Total de entregas:      #{length(entregas_productor)}")
+        IO.puts("Valor total entregas:   $#{redondear(liquidacion.valor_entregas)}")
         IO.puts("Total bonificaciones:   $#{redondear(liquidacion.bonificaciones)}")
         IO.puts("Descuento transporte:  -$#{redondear(liquidacion.transporte)}")
         IO.puts("------------------------------------------")
