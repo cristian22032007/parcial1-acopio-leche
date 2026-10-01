@@ -128,5 +128,7 @@ end
   # Privadas
 
   # Redondea a 2 decimales para que el comprobante sea legible.
-  defp redondear(numero), do: Float.round(numero / 1, 2)
+ defp redondear(numero) do
+  :erlang.float_to_binary(numero / 1, decimals: 2)
+end
 end
