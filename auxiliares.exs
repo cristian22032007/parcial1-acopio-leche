@@ -75,7 +75,7 @@ end
         liquidacion = Liquidacion.liquidar_productor(entregas_validas, productor)
         detalle = Liquidacion.detalle_por_dia(entregas_productor)
 
-        IO.puts("        COMPROBANTE DE LIQUIDACION        ")
+        IO.puts("\n\n          COMPROBANTE DE LIQUIDACION        ")
         IO.puts("==========================================")
         IO.puts("Productor: #{productor.nombre} (#{productor.codigo})")
         IO.puts("------------------------------------------")

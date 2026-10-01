@@ -31,8 +31,8 @@ def reporte_r1(rechazadas) do
     end)
 
   %{
-    entregas_rechazadas: rechazadas,
-    conteo: conteo_motivos
+    Entregas_rechazadas: rechazadas,
+    Conteo: conteo_motivos
   }
 end
 
