@@ -101,7 +101,7 @@ defmodule Liquidacion do
     end
   end
 
-  defp valor_entrega(entrega) do
+  def valor_entrega(entrega) do
     base = entrega.litros * @tarifa_base
 
     cond do
