@@ -7,6 +7,7 @@ Code.require_file("datos.exs")
 Code.require_file("validacion.exs")
 Code.require_file("liquidacion.exs")
 Code.require_file("reportes.exs")
+Code.require_file("Util2.exs")
 Code.require_file("auxiliares.exs")
 
 lista_productores = Datos.productores()
@@ -16,20 +17,23 @@ lista_entregas = Datos.entregas()
 
 IO.puts("\n\n          REGISTRO DE ENTREGA ADICIONAL        ")
 IO.puts("==========================================")
-linea_adicional = IO.gets("Ingrese una entrega adicional (productor;tanque;dia;litros;grasa) o Enter para omitir: ")
-
+linea_adicional =
+  Util2.ingresar(
+    "Ingrese una entrega adicional (productor;tanque;dia;litros;grasa) o Enter para omitir: ",
+    :texto
+  )
 todas_las_entregas =
   case Auxiliares.parsear_entrega_adicional(linea_adicional) do
     :omitir ->
-      IO.puts("No se ingreso entrega adicional. Continuando...")
+      Util2.mostrar("[i] No se ingreso entrega adicional. Continuando...", :mensaje)
       lista_entregas
 
     {:ok, entrega_nueva} ->
-      IO.puts("Entrega adicional recibida. Se validara junto con las demas.")
+      Util2.mostrar("[i] Entrega adicional recibida. Se validara junto con las demas.", :mensaje)
       lista_entregas ++ [entrega_nueva]
 
     {:error, :formato_invalido} ->
-      IO.puts("Error: formato invalido en la entrega adicional. Se omitira.")
+      Util2.mostrar("[!] Error: formato invalido en la entrega adicional. Se omitira.", :error)
       lista_entregas
   end
 
