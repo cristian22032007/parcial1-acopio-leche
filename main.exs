@@ -114,10 +114,17 @@ IO.inspect(top3_ranking)
 
 IO.puts("\n\n          MEDICION CON :timer.tc/1      ")
 IO.puts("==========================================")
-{tiempo_us, _resultado} =
-  :timer.tc(fn -> Liquidacion.liquidar_todos(entregas_validas, lista_productores) end)
+repeticiones = 10_000
 
-IO.puts("Tiempo de ejecucion de la liquidacion de todos los productores: #{tiempo_us} microsegundos (#{tiempo_us / 1000} ms)")
+{tiempo_total_us, _resultado} =
+  :timer.tc(fn ->
+    for _ <- 1..repeticiones do
+      Liquidacion.liquidar_todos(entregas_validas, lista_productores)
+    end
+  end)
+
+IO.puts("Total de #{repeticiones} liquidaciones: #{tiempo_total_us} microsegundos")
+IO.puts("Promedio por liquidacion: #{tiempo_total_us / repeticiones} microsegundos")
 
 
 IO.puts("\n\n          SOLICITUD DE COMPROBANTE            ")
